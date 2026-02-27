@@ -1,0 +1,141 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Search API
+  description: |
+    Unified search API that queries songs, movies and football teams APIs
+    and filters results by year.
+
+paths:
+  /api/v1/search:
+    get:
+      description: |
+        Search across songs, movies and football teams by year.
+        You can filter by exact year, minimum year, maximum year, or a range.
+        At least one of the query parameters must be provided.
+      operationId: search
+      parameters:
+        - name: year
+          in: query
+          required: false
+          description: Exact year to search for
+          schema:
+            type: integer
+            minimum: 1800
+            maximum: 2100
+        - name: minYear
+          in: query
+          required: false
+          description: Minimum year (inclusive)
+          schema:
+            type: integer
+            minimum: 1800
+            maximum: 2100
+        - name: maxYear
+          in: query
+          required: false
+          description: Maximum year (inclusive)
+          schema:
+            type: integer
+            minimum: 1800
+            maximum: 2100
+      responses:
+        '200':
+          description: Aggregated search results from all three APIs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Bad request - at least one year parameter must be provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
+components:
+  schemas:
+    SearchResult:
+      type: object
+      properties:
+        songs:
+          type: array
+          description: Songs matching the year criteria
+          items:
+            $ref: '#/components/schemas/Song'
+        movies:
+          type: array
+          description: Movies matching the year criteria
+          items:
+            $ref: '#/components/schemas/Movie'
+        footballTeams:
+          type: array
+          description: Football teams whose foundation year matches the criteria
+          items:
+            $ref: '#/components/schemas/FootballTeam'
+
+    Song:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        artist:
+          type: string
+        releaseYear:
+          type: integer
+        durationSeconds:
+          type: integer
+        isExplicit:
+          type: boolean
+
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        director:
+          type: string
+        releaseYear:
+          type: integer
+        durationMinutes:
+          type: integer
+        isAvailable:
+          type: boolean
+
+    FootballTeam:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        foundationDate:
+          type: string
+          format: date
+        stadiumCapacity:
+          type: integer
+        hasWonChampionsLeague:
+          type: boolean
+        mainSponsors:
+          type: array
+          items:
+            type: string
+
+    error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      additionalProperties: true

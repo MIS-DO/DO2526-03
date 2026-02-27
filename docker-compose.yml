@@ -1,0 +1,127 @@
+# Docker Compose - Integrador de APIs del grupo DO2526-03
+# Uso: docker compose up --build
+# Search API docs: http://localhost:3000/docs
+# Songs API:       http://localhost:3001
+# Movies API:      http://localhost:3002
+# Football API:    http://localhost:3003
+
+services:
+
+  # ─── SONGS API + MongoDB ──────────────────────────────────────────
+  songs-api:
+    image: danvelcam621/songs-api:latest
+    container_name: songs-api
+    ports:
+      - "3001:8080"
+    environment:
+      - MONGO_URI=mongodb://songs-mongo:27017
+      - NODE_ENV=production
+    depends_on:
+      songs-mongo:
+        condition: service_healthy
+    networks:
+      - group-network
+    restart: on-failure
+
+  songs-mongo:
+    image: mongo
+    container_name: songs-mongo
+    volumes:
+      - songs-mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - group-network
+
+  # ─── MOVIES API + MongoDB ─────────────────────────────────────────
+  movies-api:
+    image: migencmar/moviesapi:latest
+    container_name: movies-api
+    ports:
+      - "3002:8080"
+    environment:
+      - MONGO_URL=mongodb://movies-mongo:27017
+      - NODE_ENV=production
+    depends_on:
+      movies-mongo:
+        condition: service_healthy
+    networks:
+      - group-network
+    restart: on-failure
+
+  movies-mongo:
+    image: mongo
+    container_name: movies-mongo
+    volumes:
+      - movies-mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - group-network
+
+  # ─── FOOTBALL TEAMS API + MongoDB ─────────────────────────────────
+  football-api:
+    image: jorgeflorentino8/footballteamapi:latest
+    container_name: football-api
+    ports:
+      - "3003:8080"
+    environment:
+      - MONGO_URL=mongodb://football-mongo:27017
+      - NODE_ENV=production
+    depends_on:
+      football-mongo:
+        condition: service_healthy
+    networks:
+      - group-network
+    restart: on-failure
+
+  football-mongo:
+    image: mongo
+    container_name: football-mongo
+    volumes:
+      - football-mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - group-network
+
+  # ─── SEARCH API (sin base de datos propia) ────────────────────────
+  search-api:
+    build: ./search-api
+    container_name: search-api
+    ports:
+      - "3000:8080"
+    environment:
+      # URLs internas de Docker (nombre de servicio como hostname)
+      - SONGS_API_URL=http://songs-api:8080
+      - MOVIES_API_URL=http://movies-api:8080
+      - FOOTBALL_API_URL=http://football-api:8080
+      - NODE_ENV=production
+    depends_on:
+      - songs-api
+      - movies-api
+      - football-api
+    networks:
+      - group-network
+    restart: on-failure
+
+networks:
+  group-network:
+    driver: bridge
+
+volumes:
+  songs-mongo-data:
+  movies-mongo-data:
+  football-mongo-data:

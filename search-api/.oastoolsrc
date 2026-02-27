@@ -1,0 +1,17 @@
+{
+    "packageJSON": "package.json",
+    "oasFile": "api/oas-doc.yaml",
+    "useAnnotations": false,
+    "logger": {
+        "customLogger": null,
+        "level": "info",
+        "logFile": false
+    },
+    "middleware": {
+        "router": { "disable": false, "controllers": "./controllers" },
+        "validator": { "requestValidation": true, "responseValidation": false, "strict": false },
+        "security": { "disable": true, "auth": null },
+        "swagger": { "disable": false, "path": "/docs", "ui": { "customCss": null, "customJs": null } },
+        "error": { "disable": false, "printStackTrace": false, "customHandler": null }
+    }
+}
