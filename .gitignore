@@ -2,3 +2,13 @@ node_modules/
 logs/
 *.log
 .env
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Kubernetes rendered templates
+k8s/.rendered/
+k8s/.runtime/
