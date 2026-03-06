@@ -1,0 +1,807 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${PREPROD_NAMESPACE}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: songs-mongo-pvc
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: ${MONGO_STORAGE_SIZE}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: movies-mongo-pvc
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: ${MONGO_STORAGE_SIZE}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: football-mongo-pvc
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: ${MONGO_STORAGE_SIZE}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: songs-mongo
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: songs-mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movies-mongo
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: movies-mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: football-mongo
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: football-mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-mongo
+  namespace: ${PREPROD_NAMESPACE}
+  labels:
+    app: songs-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: songs-mongo
+  template:
+    metadata:
+      labels:
+        app: songs-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: ${MONGO_IMAGE}
+          ports:
+            - containerPort: 27017
+          resources:
+            requests:
+              cpu: ${MONGO_REQUEST_CPU}
+              memory: ${MONGO_REQUEST_MEMORY}
+            limits:
+              cpu: ${MONGO_LIMIT_CPU}
+              memory: ${MONGO_LIMIT_MEMORY}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: songs-mongo-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movies-mongo
+  namespace: ${PREPROD_NAMESPACE}
+  labels:
+    app: movies-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movies-mongo
+  template:
+    metadata:
+      labels:
+        app: movies-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: ${MONGO_IMAGE}
+          ports:
+            - containerPort: 27017
+          resources:
+            requests:
+              cpu: ${MONGO_REQUEST_CPU}
+              memory: ${MONGO_REQUEST_MEMORY}
+            limits:
+              cpu: ${MONGO_LIMIT_CPU}
+              memory: ${MONGO_LIMIT_MEMORY}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: movies-mongo-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: football-mongo
+  namespace: ${PREPROD_NAMESPACE}
+  labels:
+    app: football-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: football-mongo
+  template:
+    metadata:
+      labels:
+        app: football-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: ${MONGO_IMAGE}
+          ports:
+            - containerPort: 27017
+          resources:
+            requests:
+              cpu: ${MONGO_REQUEST_CPU}
+              memory: ${MONGO_REQUEST_MEMORY}
+            limits:
+              cpu: ${MONGO_LIMIT_CPU}
+              memory: ${MONGO_LIMIT_MEMORY}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: football-mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: songs-api
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: songs-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-api
+  namespace: ${PREPROD_NAMESPACE}
+  labels:
+    app: songs-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: songs-api
+  template:
+    metadata:
+      labels:
+        app: songs-api
+    spec:
+      containers:
+        - name: songs-api
+          image: ${SONGS_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: MONGO_URI
+              value: mongodb://songs-mongo:27017
+            - name: NODE_ENV
+              value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movies-api
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: movies-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movies-api
+  namespace: ${PREPROD_NAMESPACE}
+  labels:
+    app: movies-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: movies-api
+  template:
+    metadata:
+      labels:
+        app: movies-api
+    spec:
+      containers:
+        - name: movies-api
+          image: ${MOVIES_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: MONGO_URL
+              value: mongodb://movies-mongo:27017
+            - name: NODE_ENV
+              value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: football-api
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: football-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: football-api
+  namespace: ${PREPROD_NAMESPACE}
+  labels:
+    app: football-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: football-api
+  template:
+    metadata:
+      labels:
+        app: football-api
+    spec:
+      containers:
+        - name: football-api
+          image: ${FOOTBALL_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: MONGO_URL
+              value: mongodb://football-mongo:27017
+            - name: NODE_ENV
+              value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-api
+  namespace: ${PREPROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: search-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-api
+  namespace: ${PREPROD_NAMESPACE}
+  labels:
+    app: search-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: search-api
+  template:
+    metadata:
+      labels:
+        app: search-api
+    spec:
+      containers:
+        - name: search-api
+          image: ${SEARCH_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: SONGS_API_URL
+              value: http://songs-api:8080
+            - name: MOVIES_API_URL
+              value: http://movies-api:8080
+            - name: FOOTBALL_API_URL
+              value: http://football-api:8080
+            - name: NODE_ENV
+              value: production
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${PROD_NAMESPACE}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: songs-mongo-pvc
+  namespace: ${PROD_NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: ${MONGO_STORAGE_SIZE}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: movies-mongo-pvc
+  namespace: ${PROD_NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: ${MONGO_STORAGE_SIZE}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: football-mongo-pvc
+  namespace: ${PROD_NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: ${MONGO_STORAGE_SIZE}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: songs-mongo
+  namespace: ${PROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: songs-mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movies-mongo
+  namespace: ${PROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: movies-mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: football-mongo
+  namespace: ${PROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: football-mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-mongo
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    app: songs-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: songs-mongo
+  template:
+    metadata:
+      labels:
+        app: songs-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: ${MONGO_IMAGE}
+          ports:
+            - containerPort: 27017
+          resources:
+            requests:
+              cpu: ${MONGO_REQUEST_CPU}
+              memory: ${MONGO_REQUEST_MEMORY}
+            limits:
+              cpu: ${MONGO_LIMIT_CPU}
+              memory: ${MONGO_LIMIT_MEMORY}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: songs-mongo-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movies-mongo
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    app: movies-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movies-mongo
+  template:
+    metadata:
+      labels:
+        app: movies-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: ${MONGO_IMAGE}
+          ports:
+            - containerPort: 27017
+          resources:
+            requests:
+              cpu: ${MONGO_REQUEST_CPU}
+              memory: ${MONGO_REQUEST_MEMORY}
+            limits:
+              cpu: ${MONGO_LIMIT_CPU}
+              memory: ${MONGO_LIMIT_MEMORY}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: movies-mongo-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: football-mongo
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    app: football-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: football-mongo
+  template:
+    metadata:
+      labels:
+        app: football-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: ${MONGO_IMAGE}
+          ports:
+            - containerPort: 27017
+          resources:
+            requests:
+              cpu: ${MONGO_REQUEST_CPU}
+              memory: ${MONGO_REQUEST_MEMORY}
+            limits:
+              cpu: ${MONGO_LIMIT_CPU}
+              memory: ${MONGO_LIMIT_MEMORY}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: football-mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: songs-api
+  namespace: ${PROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: songs-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: songs-api
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    app: songs-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: songs-api
+  template:
+    metadata:
+      labels:
+        app: songs-api
+    spec:
+      containers:
+        - name: songs-api
+          image: ${SONGS_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: MONGO_URI
+              value: mongodb://songs-mongo:27017
+            - name: NODE_ENV
+              value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movies-api
+  namespace: ${PROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: movies-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movies-api
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    app: movies-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: movies-api
+  template:
+    metadata:
+      labels:
+        app: movies-api
+    spec:
+      containers:
+        - name: movies-api
+          image: ${MOVIES_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: MONGO_URL
+              value: mongodb://movies-mongo:27017
+            - name: NODE_ENV
+              value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: football-api
+  namespace: ${PROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: football-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: football-api
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    app: football-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: football-api
+  template:
+    metadata:
+      labels:
+        app: football-api
+    spec:
+      containers:
+        - name: football-api
+          image: ${FOOTBALL_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: MONGO_URL
+              value: mongodb://football-mongo:27017
+            - name: NODE_ENV
+              value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-api
+  namespace: ${PROD_NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    app: search-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-api
+  namespace: ${PROD_NAMESPACE}
+  labels:
+    app: search-api
+spec:
+  replicas: ${API_REPLICAS}
+  selector:
+    matchLabels:
+      app: search-api
+  template:
+    metadata:
+      labels:
+        app: search-api
+    spec:
+      containers:
+        - name: search-api
+          image: ${SEARCH_API_IMAGE}
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: ${API_REQUEST_CPU}
+              memory: ${API_REQUEST_MEMORY}
+            limits:
+              cpu: ${API_LIMIT_CPU}
+              memory: ${API_LIMIT_MEMORY}
+          env:
+            - name: SONGS_API_URL
+              value: http://songs-api:8080
+            - name: MOVIES_API_URL
+              value: http://movies-api:8080
+            - name: FOOTBALL_API_URL
+              value: http://football-api:8080
+            - name: NODE_ENV
+              value: production
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: search-api-ingress-prod
+  namespace: ${PROD_NAMESPACE}
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: search-api
+                port:
+                  number: 80
