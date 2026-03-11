@@ -143,6 +143,8 @@ main() {
 
   local response status body
 
+  log_info "--- PREPROD ---"
+  log_info "http://127.0.0.1:${PREPROD_PORT}  ->  svc/search-api (${PREPROD_NAMESPACE})"
   response="$(request GET "http://127.0.0.1:${PREPROD_PORT}/api/v1/search?year=2010")"
   status="$(printf "%s" "$response" | head -n1)"
   body="$(printf "%s" "$response" | tail -n +2)"
@@ -156,6 +158,8 @@ main() {
   body="$(printf "%s" "$response" | tail -n +2)"
   assert_status "$status" "400" "Preprod GET /api/v1/search without params"
 
+  log_info "--- PROD ---"
+  log_info "http://127.0.0.1:${INGRESS_PORT}  ->  ingress-nginx-controller  ->  Ingress  ->  svc/search-api (${PROD_NAMESPACE})"
   response="$(request GET "http://127.0.0.1:${INGRESS_PORT}/api/v1/search?minYear=2000&maxYear=2010")"
   status="$(printf "%s" "$response" | head -n1)"
   body="$(printf "%s" "$response" | tail -n +2)"

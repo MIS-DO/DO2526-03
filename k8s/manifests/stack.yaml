@@ -1,49 +1,49 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${PREPROD_NAMESPACE}
+  name: search-preprod
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: songs-mongo-pvc
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${MONGO_STORAGE_SIZE}
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: movies-mongo-pvc
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${MONGO_STORAGE_SIZE}
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: football-mongo-pvc
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${MONGO_STORAGE_SIZE}
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: songs-mongo
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   type: ClusterIP
   selector:
@@ -57,7 +57,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: movies-mongo
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   type: ClusterIP
   selector:
@@ -71,7 +71,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: football-mongo
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   type: ClusterIP
   selector:
@@ -85,7 +85,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: songs-mongo
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
   labels:
     app: songs-mongo
 spec:
@@ -100,16 +100,16 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: ${MONGO_IMAGE}
+          image: mongo:7
           ports:
             - containerPort: 27017
           resources:
             requests:
-              cpu: ${MONGO_REQUEST_CPU}
-              memory: ${MONGO_REQUEST_MEMORY}
+              cpu: 30m
+              memory: 96Mi
             limits:
-              cpu: ${MONGO_LIMIT_CPU}
-              memory: ${MONGO_LIMIT_MEMORY}
+              cpu: 250m
+              memory: 256Mi
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
@@ -122,7 +122,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: movies-mongo
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
   labels:
     app: movies-mongo
 spec:
@@ -137,16 +137,16 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: ${MONGO_IMAGE}
+          image: mongo:7
           ports:
             - containerPort: 27017
           resources:
             requests:
-              cpu: ${MONGO_REQUEST_CPU}
-              memory: ${MONGO_REQUEST_MEMORY}
+              cpu: 30m
+              memory: 96Mi
             limits:
-              cpu: ${MONGO_LIMIT_CPU}
-              memory: ${MONGO_LIMIT_MEMORY}
+              cpu: 250m
+              memory: 256Mi
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
@@ -159,7 +159,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: football-mongo
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
   labels:
     app: football-mongo
 spec:
@@ -174,16 +174,16 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: ${MONGO_IMAGE}
+          image: mongo:7
           ports:
             - containerPort: 27017
           resources:
             requests:
-              cpu: ${MONGO_REQUEST_CPU}
-              memory: ${MONGO_REQUEST_MEMORY}
+              cpu: 30m
+              memory: 96Mi
             limits:
-              cpu: ${MONGO_LIMIT_CPU}
-              memory: ${MONGO_LIMIT_MEMORY}
+              cpu: 250m
+              memory: 256Mi
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
@@ -196,7 +196,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: songs-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   type: ClusterIP
   selector:
@@ -210,11 +210,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: songs-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
   labels:
     app: songs-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: songs-api
@@ -225,16 +225,16 @@ spec:
     spec:
       containers:
         - name: songs-api
-          image: ${SONGS_API_IMAGE}
+          image: danvelcam621/songs-api:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: MONGO_URI
               value: mongodb://songs-mongo:27017
@@ -245,7 +245,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: movies-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   type: ClusterIP
   selector:
@@ -259,11 +259,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: movies-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
   labels:
     app: movies-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: movies-api
@@ -274,16 +274,16 @@ spec:
     spec:
       containers:
         - name: movies-api
-          image: ${MOVIES_API_IMAGE}
+          image: migencmar/moviesapi:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: MONGO_URL
               value: mongodb://movies-mongo:27017
@@ -294,7 +294,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: football-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   type: ClusterIP
   selector:
@@ -308,11 +308,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: football-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
   labels:
     app: football-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: football-api
@@ -323,16 +323,16 @@ spec:
     spec:
       containers:
         - name: football-api
-          image: ${FOOTBALL_API_IMAGE}
+          image: jorgeflorentino8/footballteamapi:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: MONGO_URL
               value: mongodb://football-mongo:27017
@@ -343,7 +343,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: search-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
 spec:
   type: ClusterIP
   selector:
@@ -357,11 +357,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: search-api
-  namespace: ${PREPROD_NAMESPACE}
+  namespace: search-preprod
   labels:
     app: search-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: search-api
@@ -372,16 +372,16 @@ spec:
     spec:
       containers:
         - name: search-api
-          image: ${SEARCH_API_IMAGE}
+          image: jorgeflorentino8/searchapi:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: SONGS_API_URL
               value: http://songs-api:8080
@@ -396,49 +396,49 @@ spec:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${PROD_NAMESPACE}
+  name: search-prod
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: songs-mongo-pvc
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${MONGO_STORAGE_SIZE}
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: movies-mongo-pvc
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${MONGO_STORAGE_SIZE}
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: football-mongo-pvc
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${MONGO_STORAGE_SIZE}
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: songs-mongo
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   type: ClusterIP
   selector:
@@ -452,7 +452,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: movies-mongo
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   type: ClusterIP
   selector:
@@ -466,7 +466,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: football-mongo
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   type: ClusterIP
   selector:
@@ -480,7 +480,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: songs-mongo
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
   labels:
     app: songs-mongo
 spec:
@@ -495,16 +495,16 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: ${MONGO_IMAGE}
+          image: mongo:7
           ports:
             - containerPort: 27017
           resources:
             requests:
-              cpu: ${MONGO_REQUEST_CPU}
-              memory: ${MONGO_REQUEST_MEMORY}
+              cpu: 30m
+              memory: 96Mi
             limits:
-              cpu: ${MONGO_LIMIT_CPU}
-              memory: ${MONGO_LIMIT_MEMORY}
+              cpu: 250m
+              memory: 256Mi
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
@@ -517,7 +517,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: movies-mongo
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
   labels:
     app: movies-mongo
 spec:
@@ -532,16 +532,16 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: ${MONGO_IMAGE}
+          image: mongo:7
           ports:
             - containerPort: 27017
           resources:
             requests:
-              cpu: ${MONGO_REQUEST_CPU}
-              memory: ${MONGO_REQUEST_MEMORY}
+              cpu: 30m
+              memory: 96Mi
             limits:
-              cpu: ${MONGO_LIMIT_CPU}
-              memory: ${MONGO_LIMIT_MEMORY}
+              cpu: 250m
+              memory: 256Mi
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
@@ -554,7 +554,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: football-mongo
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
   labels:
     app: football-mongo
 spec:
@@ -569,16 +569,16 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: ${MONGO_IMAGE}
+          image: mongo:7
           ports:
             - containerPort: 27017
           resources:
             requests:
-              cpu: ${MONGO_REQUEST_CPU}
-              memory: ${MONGO_REQUEST_MEMORY}
+              cpu: 30m
+              memory: 96Mi
             limits:
-              cpu: ${MONGO_LIMIT_CPU}
-              memory: ${MONGO_LIMIT_MEMORY}
+              cpu: 250m
+              memory: 256Mi
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
@@ -591,7 +591,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: songs-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   type: ClusterIP
   selector:
@@ -605,11 +605,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: songs-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
   labels:
     app: songs-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: songs-api
@@ -620,16 +620,16 @@ spec:
     spec:
       containers:
         - name: songs-api
-          image: ${SONGS_API_IMAGE}
+          image: danvelcam621/songs-api:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: MONGO_URI
               value: mongodb://songs-mongo:27017
@@ -640,7 +640,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: movies-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   type: ClusterIP
   selector:
@@ -654,11 +654,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: movies-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
   labels:
     app: movies-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: movies-api
@@ -669,16 +669,16 @@ spec:
     spec:
       containers:
         - name: movies-api
-          image: ${MOVIES_API_IMAGE}
+          image: migencmar/moviesapi:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: MONGO_URL
               value: mongodb://movies-mongo:27017
@@ -689,7 +689,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: football-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   type: ClusterIP
   selector:
@@ -703,11 +703,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: football-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
   labels:
     app: football-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: football-api
@@ -718,16 +718,16 @@ spec:
     spec:
       containers:
         - name: football-api
-          image: ${FOOTBALL_API_IMAGE}
+          image: jorgeflorentino8/footballteamapi:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: MONGO_URL
               value: mongodb://football-mongo:27017
@@ -738,7 +738,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: search-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   type: ClusterIP
   selector:
@@ -752,11 +752,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: search-api
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
   labels:
     app: search-api
 spec:
-  replicas: ${API_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: search-api
@@ -767,16 +767,16 @@ spec:
     spec:
       containers:
         - name: search-api
-          image: ${SEARCH_API_IMAGE}
+          image: jorgeflorentino8/searchapi:latest
           ports:
             - containerPort: 8080
           resources:
             requests:
-              cpu: ${API_REQUEST_CPU}
-              memory: ${API_REQUEST_MEMORY}
+              cpu: 20m
+              memory: 64Mi
             limits:
-              cpu: ${API_LIMIT_CPU}
-              memory: ${API_LIMIT_MEMORY}
+              cpu: 150m
+              memory: 192Mi
           env:
             - name: SONGS_API_URL
               value: http://songs-api:8080
@@ -792,7 +792,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: search-api-ingress-prod
-  namespace: ${PROD_NAMESPACE}
+  namespace: search-prod
 spec:
   ingressClassName: nginx
   rules:
@@ -805,3 +805,84 @@ spec:
                 name: search-api
                 port:
                   number: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: search-api-hpa
+  namespace: search-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: search-api
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 20
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: songs-api-hpa
+  namespace: search-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: songs-api
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 20
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: movies-api-hpa
+  namespace: search-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: movies-api
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 20
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: football-api-hpa
+  namespace: search-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: football-api
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 20
