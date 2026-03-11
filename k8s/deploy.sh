@@ -52,7 +52,7 @@ main() {
   kubectl -n default wait --for=condition=Available deployment/ingress-nginx-controller --timeout=300s
 
   ADMISSION_READY=0
-  for _ in $(seq 1 30); do
+  for _ in $(seq 1 60); do
     ADMISSION_EP="$(kubectl -n default get endpoints ingress-nginx-controller-admission -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)"
     if [ -n "${ADMISSION_EP}" ]; then
       ADMISSION_READY=1
