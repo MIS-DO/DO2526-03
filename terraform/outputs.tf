@@ -13,16 +13,6 @@ output "cluster_endpoint" {
   value       = digitalocean_kubernetes_cluster.main.endpoint
 }
 
-output "preprod_namespace" {
-  description = "Namespace used by preproduction."
-  value       = var.preprod_namespace
-}
-
-output "prod_namespace" {
-  description = "Namespace used by production."
-  value       = var.prod_namespace
-}
-
 output "ingress_lb_ip" {
   description = "Ingress LoadBalancer public IP (empty if pending/unavailable)."
   value       = try(data.external.ingress_lb.result.ip, "")
@@ -31,16 +21,6 @@ output "ingress_lb_ip" {
 output "ingress_lb_hostname" {
   description = "Ingress LoadBalancer hostname (empty if provider returns IP)."
   value       = try(data.external.ingress_lb.result.hostname, "")
-}
-
-output "ingress_lb_address" {
-  description = "Ingress LoadBalancer address (IP preferred, hostname fallback)."
-  value       = try(data.external.ingress_lb.result.ip != "" ? data.external.ingress_lb.result.ip : data.external.ingress_lb.result.hostname, "")
-}
-
-output "search_api_image" {
-  description = "Image reference deployed for search-api."
-  value       = local.search_api_image
 }
 
 output "kubeconfig_raw" {
