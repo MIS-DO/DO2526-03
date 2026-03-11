@@ -72,7 +72,10 @@ main() {
   if [[ -n "$lb_addr" ]]; then
     log "Ingress LB: $lb_addr"
     echo "Añade a terraform/.env:  LB_ADDR=$lb_addr"
-    echo "Prod URL: http://$lb_addr/api/v1/search?year=2010"
+    echo ""
+    echo "=== PROD (via Ingress LB) ==="
+    echo "  search-api: http://$lb_addr/docs/"
+    echo "  search:     http://$lb_addr/api/v1/search?year=2010"
   else
     log "Ingress external address still pending"
   fi
