@@ -34,8 +34,3 @@ variable "node_count" {
   default     = 1
 }
 
-variable "common_tags" {
-  description = "Tags applied to DigitalOcean resources."
-  type        = list(string)
-  default     = ["education", "terraform", "kubernetes"]
-}
