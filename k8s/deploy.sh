@@ -65,6 +65,8 @@ main() {
     exit 1
   fi
 
+  sleep 5
+
   log "Applying app manifests (preprod + prod)"
   kubectl apply -f "${STACK_FILE}"
 
@@ -113,26 +115,23 @@ main() {
   INGRESS_IP="$(kubectl -n default get svc ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)"
   INGRESS_HOSTNAME="$(kubectl -n default get svc ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
 
+  kubectl -n search-preprod port-forward svc/search-api 8081:80 >"${RUNTIME_DIR}/pf-preprod-search.log" 2>&1 &
+
+  sleep 2
+
   log "Deployment completed"
   kubectl -n search-preprod get pods
   kubectl -n search-prod get pods
 
-  echo "Prod via Ingress: http://<INGRESS_LB>/api/v1/search?year=2010"
-  echo "Preprod test (port-forward): kubectl -n search-preprod port-forward svc/search-api 8081:80"
-  if [ -n "${INGRESS_IP}" ]; then
-    echo "Ingress external IP: ${INGRESS_IP}"
-    echo "Test prod via LB: curl 'http://${INGRESS_IP}/api/v1/search?year=2010'"
-  elif [ -n "${INGRESS_HOSTNAME}" ]; then
-    echo "Ingress external hostname: ${INGRESS_HOSTNAME}"
-    echo "Test prod via LB: curl 'http://${INGRESS_HOSTNAME}/api/v1/search?year=2010'"
-  else
-    echo "Ingress external address is still pending."
-  fi
-
+  echo ""
+  echo "=== PROD (via Ingress) ==="
+  echo "  search-api: http://localhost/docs/"
+  echo ""
+  echo "=== PREPROD (via port-forward) ==="
+  echo "  search-api: http://localhost:8081/docs/"
+  echo ""
   if [ "${PF_READY}" -eq 1 ]; then
-    echo "Headlamp URL: http://localhost:${HEADLAMP_PORT}"
-  else
-    echo "Headlamp port-forward started but not ready yet. Log: ${HEADLAMP_PF_LOG_FILE}"
+    echo "  Headlamp: http://localhost:${HEADLAMP_PORT}"
   fi
 }
 

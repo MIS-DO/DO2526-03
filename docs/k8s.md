@@ -9,6 +9,7 @@ Despliega los dos entornos en el cluster local usando los manifiestos de `k8s/ma
 
 ```bash
 kubectl config current-context   # debe ser docker-desktop
+kubectl config use-context docker-desktop # para cambiar si es necesario
 ```
 
 ## Desplegar

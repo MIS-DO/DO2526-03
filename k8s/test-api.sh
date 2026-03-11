@@ -6,7 +6,6 @@ RUNTIME_DIR="${K8S_DIR}/.runtime"
 PREPROD_NAMESPACE="${PREPROD_NAMESPACE:-search-preprod}"
 PROD_NAMESPACE="${PROD_NAMESPACE:-search-prod}"
 PREPROD_PORT="${PREPROD_PORT:-18080}"
-INGRESS_PORT="${INGRESS_PORT:-18081}"
 
 RED=""
 GREEN=""
@@ -135,9 +134,8 @@ main() {
   kubectl -n "$PREPROD_NAMESPACE" port-forward svc/search-api "${PREPROD_PORT}:80" >"$RUNTIME_DIR/test-preprod-pf.log" 2>&1 &
   PREPROD_PF_PID="$!"
 
-  log_info "Starting port-forward to ingress controller"
-  kubectl -n default port-forward svc/ingress-nginx-controller "${INGRESS_PORT}:80" >"$RUNTIME_DIR/test-ingress-pf.log" 2>&1 &
-  INGRESS_PF_PID="$!"
+  local ingress_host="127.0.0.1"
+  INGRESS_PORT="80"
 
   sleep 2
 
@@ -159,14 +157,14 @@ main() {
   assert_status "$status" "400" "Preprod GET /api/v1/search without params"
 
   log_info "--- PROD ---"
-  log_info "http://127.0.0.1:${INGRESS_PORT}  ->  ingress-nginx-controller  ->  Ingress  ->  svc/search-api (${PROD_NAMESPACE})"
-  response="$(request GET "http://127.0.0.1:${INGRESS_PORT}/api/v1/search?minYear=2000&maxYear=2010")"
+  log_info "http://${ingress_host}:${INGRESS_PORT}  ->  ingress-nginx-controller  ->  Ingress  ->  svc/search-api (${PROD_NAMESPACE})"
+  response="$(request GET "http://${ingress_host}:${INGRESS_PORT}/api/v1/search?minYear=2000&maxYear=2010")"
   status="$(printf "%s" "$response" | head -n1)"
   body="$(printf "%s" "$response" | tail -n +2)"
   assert_status "$status" "200" "Prod via Ingress GET /api/v1/search?minYear=2000&maxYear=2010"
   assert_contains "$body" '"songs"' "Prod Ingress response contains songs"
 
-  response="$(request GET "http://127.0.0.1:${INGRESS_PORT}/docs/")"
+  response="$(request GET "http://${ingress_host}:${INGRESS_PORT}/docs/")"
   status="$(printf "%s" "$response" | head -n1)"
   body="$(printf "%s" "$response" | tail -n +2)"
   assert_status "$status" "200" "Prod via Ingress GET /docs/"
