@@ -7,6 +7,8 @@ HPA_NAME="search-api-hpa"
 
 cleanup() {
   kubectl delete pod "${POD_NAME}" -n "${NAMESPACE}" --ignore-not-found
+  echo "Esperando a que bajen las metricas de CPU..."
+  sleep 40
   kubectl scale deployment songs-api movies-api football-api search-api \
     -n "${NAMESPACE}" --replicas=1
   kubectl get pods -n "${NAMESPACE}" | grep -v mongo

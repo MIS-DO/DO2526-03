@@ -49,13 +49,13 @@ assert_contains() {
 }
 
 main() {
-  # Auto-detectar LB desde terraform output, o usar variable de entorno
-  if [ -z "${LB_ADDR:-}" ]; then
-    LB_ADDR="$(cd "$SCRIPT_DIR" && terraform output -raw ingress_lb_address 2>/dev/null || true)"
+  # Leer LB_ADDR del .env si no está ya en el entorno
+  if [ -z "${LB_ADDR:-}" ] && [ -f "$SCRIPT_DIR/.env" ]; then
+    set -a; source "$SCRIPT_DIR/.env"; set +a
   fi
 
   if [ -z "${LB_ADDR:-}" ]; then
-    echo "No se pudo obtener la IP del LB. Ejecuta: LB_ADDR=<ip> ./terraform/test-api.sh" >&2
+    echo "LB_ADDR no definido. Añade LB_ADDR=<ip> a terraform/.env" >&2
     exit 1
   fi
 

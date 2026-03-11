@@ -32,7 +32,6 @@ main() {
 
   if [[ ! -f "$SCRIPT_DIR/terraform.tfvars" ]]; then
     echo "Error: terraform.tfvars not found in $SCRIPT_DIR" >&2
-    echo "Run: cp terraform.tfvars.example terraform.tfvars" >&2
     exit 1
   fi
 
@@ -41,7 +40,7 @@ main() {
     exit 1
   fi
 
-  local cluster_name preprod_namespace prod_namespace ingress_ip ingress_hostname ingress_output_addr
+  local cluster_name ingress_ip ingress_hostname
 
   log "Terraform init"
   terraform -chdir="$SCRIPT_DIR" init
@@ -61,32 +60,19 @@ main() {
   log "Apply full infrastructure and workloads"
   terraform -chdir="$SCRIPT_DIR" apply -auto-approve
 
-  preprod_namespace="$(terraform -chdir="$SCRIPT_DIR" output -raw preprod_namespace)"
-  prod_namespace="$(terraform -chdir="$SCRIPT_DIR" output -raw prod_namespace)"
-
   log "Quick checks"
   kubectl get nodes
-  kubectl -n "$preprod_namespace" get pods
-  kubectl -n "$prod_namespace" get pods
-  kubectl -n default get svc ingress-nginx-controller
+  kubectl -n search-preprod get pods
+  kubectl -n search-prod get pods
 
   ingress_ip="$(kubectl -n default get svc ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)"
   ingress_hostname="$(kubectl -n default get svc ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
-  ingress_output_addr="$(terraform -chdir="$SCRIPT_DIR" output -raw ingress_lb_address 2>/dev/null || true)"
-  if [[ -n "$ingress_output_addr" ]]; then
-    echo "Terraform output ingress_lb_address: $ingress_output_addr"
-  fi
+  local lb_addr="${ingress_ip:-$ingress_hostname}"
 
-  if [[ -n "$ingress_ip" ]]; then
-    log "Ingress IP: $ingress_ip"
-    echo "Prod URL (ingress): http://$ingress_ip"
-    echo "Preprod test via port-forward: kubectl -n $preprod_namespace port-forward svc/search-api 8081:80"
-    echo "Direct test prod: curl 'http://$ingress_ip/api/v1/search?year=2010'"
-  elif [[ -n "$ingress_hostname" ]]; then
-    log "Ingress hostname: $ingress_hostname"
-    echo "Prod URL (ingress): http://$ingress_hostname"
-    echo "Preprod test via port-forward: kubectl -n $preprod_namespace port-forward svc/search-api 8081:80"
-    echo "Direct test prod: curl 'http://$ingress_hostname/api/v1/search?year=2010'"
+  if [[ -n "$lb_addr" ]]; then
+    log "Ingress LB: $lb_addr"
+    echo "Añade a terraform/.env:  LB_ADDR=$lb_addr"
+    echo "Prod URL: http://$lb_addr/api/v1/search?year=2010"
   else
     log "Ingress external address still pending"
   fi
