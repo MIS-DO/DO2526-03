@@ -71,7 +71,6 @@ main() {
 
   if [[ -n "$lb_addr" ]]; then
     log "Ingress LB: $lb_addr"
-    echo "Añade a terraform/.env:  LB_ADDR=$lb_addr"
     echo ""
     echo "=== PROD (via Ingress LB) ==="
     echo "  search-api: http://$lb_addr/docs/"
