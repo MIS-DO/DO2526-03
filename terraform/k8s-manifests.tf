@@ -15,10 +15,5 @@ resource "null_resource" "k8s_manifests" {
     command = "${path.module}/../k8s/deploy.sh"
   }
 
-  provisioner "local-exec" {
-    when    = destroy
-    command = "${path.module}/../k8s/destroy.sh"
-  }
-
   depends_on = [digitalocean_kubernetes_cluster.main]
 }
